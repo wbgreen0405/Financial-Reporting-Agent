@@ -1,0 +1,5 @@
+theme: minima
+title: Financial Reporting Agent
+description: AI-powered wealth management insights using Microsoft Fabric, Vanna AI, and GPT-4.
+markdown: kramdown
+repository: your-repo/financial-reporting-agent
