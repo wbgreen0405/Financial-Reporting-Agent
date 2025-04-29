@@ -1,0 +1,511 @@
+,id,question,content,training_data_type
+0,5a3efeeb-a2a1-5049-9c95-3d7442f7f4c1-ddl,,"CREATE TABLE [wealth_data].[dbo].[Advisors] (     AdvisorID INT IDENTITY(1,1) PRIMARY KEY,     Name NVARCHAR(100) NOT NULL,     ContactInfo NVARCHAR(100) );",ddl
+1,d7eaaaa6-7b74-596f-80bd-ad7b36d1aa28-ddl,,"CREATE TABLE [wealth_data].[dbo].[Clients] (     ClientID INT IDENTITY(1,1) PRIMARY KEY,     Name NVARCHAR(100) NOT NULL,     ContactInfo NVARCHAR(100),     AdvisorID INT,     RiskProfile NVARCHAR(50),     FOREIGN KEY (AdvisorID) REFERENCES [wealth_data].[dbo].[Advisors](AdvisorID) );",ddl
+2,892dd718-4bf2-5127-a90d-a058514227bd-ddl,,"CREATE TABLE [wealth_data].[dbo].[Accounts] (     AccountID INT IDENTITY(1,1) PRIMARY KEY,     AccountType NVARCHAR(50) NOT NULL,     ClientID INT,     FOREIGN KEY (ClientID) REFERENCES [wealth_data].[dbo].[Clients](ClientID) );",ddl
+3,f2b7748f-ff59-531c-a075-d941846f3050-ddl,,"CREATE TABLE [wealth_data].[dbo].[Assets] (     AssetID INT IDENTITY(1,1) PRIMARY KEY,     Name NVARCHAR(100) NOT NULL,     AssetType NVARCHAR(50),     CurrentValue DECIMAL(18, 2) );",ddl
+4,a03515ab-67f8-5036-855b-a817d59c587c-ddl,,"CREATE TABLE [wealth_data].[dbo].[Transactions] (     TransactionID INT IDENTITY(1,1) PRIMARY KEY,     AccountID INT,     AssetID INT,     Date DATETIME,     Type NVARCHAR(50),     Amount DECIMAL(18, 2),     FOREIGN KEY (AccountID) REFERENCES [wealth_data].[dbo].[Accounts](AccountID),     FOREIGN KEY (AssetID) REFERENCES [wealth_data].[dbo].[Assets](AssetID) );",ddl
+5,e781bdec-0004-5e42-a250-312461aa1fcf-ddl,,"CREATE TABLE [wealth_data].[dbo].[Portfolios] (     PortfolioID INT IDENTITY(1,1) PRIMARY KEY,     ClientID INT,     Name NVARCHAR(100),     RiskLevel NVARCHAR(50),     FOREIGN KEY (ClientID) REFERENCES [wealth_data].[dbo].[Clients](ClientID) );",ddl
+6,5ae71f3e-7f61-5aea-b16e-388e684cf9cd-ddl,,"CREATE TABLE [wealth_data].[dbo].[PortfolioAssets] (     PortfolioAssetID INT IDENTITY(1,1) PRIMARY KEY,     PortfolioID INT,     AssetID INT,     Allocation DECIMAL(18, 2),     FOREIGN KEY (PortfolioID) REFERENCES [wealth_data].[dbo].[Portfolios](PortfolioID),     FOREIGN KEY (AssetID) REFERENCES [wealth_data].[dbo].[Assets](AssetID) );",ddl
+7,9c9d408d-3dd8-5328-9244-459e00b7e97a-ddl,,"CREATE TABLE [wealth_data].[dbo].[Projections] (     ProjectionID INT IDENTITY(1,1) PRIMARY KEY,     PortfolioID INT,     FutureValue DECIMAL(18, 2),     ProjectionDate DATETIME,     FOREIGN KEY (PortfolioID) REFERENCES [wealth_data].[dbo].[Portfolios](PortfolioID) );",ddl
+8,a63ffd2a-2f7e-50a9-8b1f-59db3ed23078-ddl,,"CREATE VIEW [wealth_data].[dbo].[PortfolioAssetAllocation] AS SELECT     p.PortfolioID,     p.Name AS PortfolioName,     pa.AssetID,     a.Name AS AssetName,     pa.Allocation,     a.CurrentValue,     (pa.Allocation / 100.0) * a.CurrentValue AS AllocatedValue FROM     [wealth_data].[dbo].[Portfolios] p JOIN     [wealth_data].[dbo].[PortfolioAssets] pa ON p.PortfolioID = pa.PortfolioID JOIN     [wealth_data].[dbo].[Assets] a ON pa.AssetID = a.AssetID;",ddl
+9,50e4277c-3a14-5311-8c31-cf619b0c1c8e-ddl,,"CREATE VIEW [wealth_data].[dbo].[ClientPortfolioValue] AS SELECT     c.ClientID,     c.Name AS ClientName,     SUM(pa.Allocation * a.CurrentValue / 100.0) AS TotalPortfolioValue FROM     [wealth_data].[dbo].[Clients] c JOIN     [wealth_data].[dbo].[Portfolios] p ON c.ClientID = p.ClientID JOIN     [wealth_data].[dbo].[PortfolioAssets] pa ON p.PortfolioID = pa.PortfolioID JOIN     [wealth_data].[dbo].[Assets] a ON pa.AssetID = a.AssetID GROUP BY     c.ClientID, c.Name;",ddl
+10,57fdf114-08c1-5917-a5f0-92880b50c312-ddl,,"CREATE VIEW [wealth_data].[dbo].[PortfolioSummary] AS SELECT     p.PortfolioID,     p.Name AS PortfolioName,     c.ClientID,     c.Name AS ClientName,     SUM(pa.Allocation * a.CurrentValue / 100.0) AS TotalPortfolioValue,     COUNT(DISTINCT pa.AssetID) AS NumberOfAssets FROM     [wealth_data].[dbo].[Portfolios] p JOIN     [wealth_data].[dbo].[Clients] c ON p.ClientID = c.ClientID JOIN     [wealth_data].[dbo].[PortfolioAssets] pa ON p.PortfolioID = pa.PortfolioID JOIN     [wealth_data].[dbo].[Assets] a ON pa.AssetID = a.AssetID GROUP BY     p.PortfolioID, p.Name, c.ClientID, c.Name;",ddl
+11,fe111ef7-2035-59de-b867-cb0731f6c19d-ddl,,"CREATE VIEW [wealth_data].[dbo].[AccountTransactionHistory] AS SELECT     t.TransactionID,     a.AccountID,     acc.AccountType,     a.AssetID,     t.Date,     t.Type AS TransactionType,     t.Amount,     a.CurrentValue FROM     [wealth_data].[dbo].[Transactions] t JOIN     [wealth_data].[dbo].[Accounts] acc ON t.AccountID = acc.AccountID JOIN     [wealth_data].[dbo].[Assets] a ON t.AssetID = a.AssetID ORDER BY     t.Date DESC;",ddl
+12,d5b0fcde-72c8-5621-ada6-cd294cc99344-ddl,,"CREATE VIEW [wealth_data].[dbo].[OverallWealthSummary] AS SELECT     a.AssetType,     COUNT(a.AssetID) AS NumberOfAssets,     SUM(a.CurrentValue) AS TotalWealth FROM     [wealth_data].[dbo].[Assets] a GROUP BY     a.AssetType;",ddl
+13,41c88013-5c28-5dbc-9a7f-53e0a50ab922-ddl,,"CREATE PROCEDURE [dbo].[CalculateClientRiskAssessment] AS BEGIN SELECT c.ClientID, c.Name AS ClientName, p.PortfolioID, p.Name AS PortfolioName, p.RiskLevel, SUM(a.CurrentValue * pa.Allocation / 100.0) AS TotalAllocatedValue FROM [wealth_data].[dbo].[Clients] c JOIN [wealth_data].[dbo].[Portfolios] p ON c.ClientID = p.ClientID JOIN [wealth_data].[dbo].[PortfolioAssets] pa ON p.PortfolioID = pa.PortfolioID JOIN [wealth_data].[dbo].[Assets] a ON pa.AssetID = a.AssetID GROUP BY c.ClientID, c.Name, p.PortfolioID, p.Name, p.RiskLevel; END;",ddl
+14,88f4baec-2c70-5cf6-abcc-8e6ae13d7353-ddl,,"CREATE PROCEDURE [dbo].[CalculateTotalPortfolioValue] AS BEGIN SELECT c.ClientID, c.Name AS ClientName, p.PortfolioID, p.Name AS PortfolioName, SUM(pa.Allocation * a.CurrentValue / 100.0) AS TotalPortfolioValue FROM [wealth_data].[dbo].[Clients] c JOIN [wealth_data].[dbo].[Portfolios] p ON c.ClientID = p.ClientID JOIN [wealth_data].[dbo].[PortfolioAssets] pa ON p.PortfolioID = pa.PortfolioID JOIN [wealth_data].[dbo].[Assets] a ON pa.AssetID = a.AssetID GROUP BY c.ClientID, c.Name, p.PortfolioID, p.Name; END;",ddl
+15,f7c90803-b6bf-5c70-8ca1-b30cb001305d-ddl,,"CREATE PROCEDURE [dbo].[IdentifyUnderperformingAssets] @Threshold DECIMAL(18,2), @DaysInterval INT AS BEGIN SELECT a.AssetID, a.Name AS AssetName, a.CurrentValue, COUNT(t.TransactionID) AS NumTransactions FROM [wealth_data].[dbo].[Assets] a LEFT JOIN [wealth_data].[dbo].[Transactions] t ON a.AssetID = t.AssetID WHERE t.Date >= DATEADD(DAY, -@DaysInterval, GETDATE()) GROUP BY a.AssetID, a.Name, a.CurrentValue HAVING COUNT(t.TransactionID) < @Threshold; END;",ddl
+16,7b0ee2de-2c63-5864-8278-bea2124f682a-ddl,,"CREATE PROCEDURE [dbo].[GetPortfolioPerformanceOverTime] @ClientID INT AS BEGIN SELECT p.PortfolioID, p.Name AS PortfolioName, t.Date, SUM(t.Amount) AS TotalTransactionValue, SUM(pa.Allocation * a.CurrentValue / 100.0) AS CurrentPortfolioValue FROM [wealth_data].[dbo].[Clients] c JOIN [dbo].[Portfolios] p ON c.ClientID = p.ClientID JOIN [wealth_data].[dbo].[PortfolioAssets] pa ON p.PortfolioID = pa.PortfolioID JOIN [wealth_data].[dbo].[Assets] a ON pa.AssetID = a.AssetID LEFT JOIN [wealth_data].[dbo].[Transactions] t ON t.AssetID = a.AssetID WHERE c.ClientID = @ClientID GROUP BY p.PortfolioID, p.Name, t.Date; END;",ddl
+17,92572b5b-2bcb-59f2-8251-aa9cc8b6160e-ddl,,"CREATE PROCEDURE [dbo].[AnalyzeAssetAllocation] AS BEGIN SELECT a.AssetID, a.Name AS AssetName, SUM(pa.Allocation) AS TotalAllocationAcrossPortfolios FROM [wealth_data].[dbo].[Assets] a JOIN [wealth_data].[dbo].[PortfolioAssets] pa ON a.AssetID = pa.AssetID GROUP BY a.AssetID, a.Name; END;",ddl
+0,8f54ae78-efe4-5713-b092-6b0f8fbd7912-doc,,"The following columns are in the exec_requests_history table in the DataflowsStagingLakehouse database:
+
+|    | TABLE_CATALOG             | TABLE_SCHEMA   | TABLE_NAME            | COLUMN_NAME              | DATA_TYPE        |
+|---:|:--------------------------|:---------------|:----------------------|:-------------------------|:-----------------|
+|  0 | DataflowsStagingLakehouse | queryinsights  | exec_requests_history | distributed_statement_id | uniqueidentifier |
+|  1 | DataflowsStagingLakehouse | queryinsights  | exec_requests_history | submit_time              | datetime2        |
+|  2 | DataflowsStagingLakehouse | queryinsights  | exec_requests_history | start_time               | datetime2        |
+|  3 | DataflowsStagingLakehouse | queryinsights  | exec_requests_history | end_time                 | datetime2        |
+|  4 | DataflowsStagingLakehouse | queryinsights  | exec_requests_history | total_elapsed_time_ms    | int              |
+|  5 | DataflowsStagingLakehouse | queryinsights  | exec_requests_history | login_name               | varchar          |
+|  6 | DataflowsStagingLakehouse | queryinsights  | exec_requests_history | row_count                | bigint           |
+|  7 | DataflowsStagingLakehouse | queryinsights  | exec_requests_history | status                   | varchar          |
+|  8 | DataflowsStagingLakehouse | queryinsights  | exec_requests_history | session_id               | int              |
+|  9 | DataflowsStagingLakehouse | queryinsights  | exec_requests_history | connection_id            | uniqueidentifier |
+| 10 | DataflowsStagingLakehouse | queryinsights  | exec_requests_history | program_name             | varchar          |
+| 11 | DataflowsStagingLakehouse | queryinsights  | exec_requests_history | batch_id                 | uniqueidentifier |
+| 12 | DataflowsStagingLakehouse | queryinsights  | exec_requests_history | root_batch_id            | uniqueidentifier |
+| 13 | DataflowsStagingLakehouse | queryinsights  | exec_requests_history | query_hash               | varchar          |
+| 14 | DataflowsStagingLakehouse | queryinsights  | exec_requests_history | label                    | varchar          |
+| 15 | DataflowsStagingLakehouse | queryinsights  | exec_requests_history | result_cache_hit         | int              |
+| 16 | DataflowsStagingLakehouse | queryinsights  | exec_requests_history | command                  | varchar          |",documentation
+1,aaee20fa-f261-5322-b069-606810404a0d-doc,,"The following columns are in the long_running_queries table in the DataflowsStagingLakehouse database:
+
+|    | TABLE_CATALOG             | TABLE_SCHEMA   | TABLE_NAME           | COLUMN_NAME                    | DATA_TYPE        |
+|---:|:--------------------------|:---------------|:---------------------|:-------------------------------|:-----------------|
+| 17 | DataflowsStagingLakehouse | queryinsights  | long_running_queries | median_total_elapsed_time_ms   | float            |
+| 18 | DataflowsStagingLakehouse | queryinsights  | long_running_queries | last_run_total_elapsed_time_ms | int              |
+| 19 | DataflowsStagingLakehouse | queryinsights  | long_running_queries | last_run_start_time            | datetime2        |
+| 20 | DataflowsStagingLakehouse | queryinsights  | long_running_queries | last_dist_statement_id         | uniqueidentifier |
+| 21 | DataflowsStagingLakehouse | queryinsights  | long_running_queries | last_run_session_id            | int              |
+| 22 | DataflowsStagingLakehouse | queryinsights  | long_running_queries | number_of_runs                 | int              |
+| 23 | DataflowsStagingLakehouse | queryinsights  | long_running_queries | query_hash                     | varchar          |
+| 24 | DataflowsStagingLakehouse | queryinsights  | long_running_queries | last_run_command               | varchar          |",documentation
+2,775c76a4-7ef7-5a1b-95db-a7bc99c713f2-doc,,"The following columns are in the frequently_run_queries table in the DataflowsStagingLakehouse database:
+
+|    | TABLE_CATALOG             | TABLE_SCHEMA   | TABLE_NAME             | COLUMN_NAME                    | DATA_TYPE        |
+|---:|:--------------------------|:---------------|:-----------------------|:-------------------------------|:-----------------|
+| 25 | DataflowsStagingLakehouse | queryinsights  | frequently_run_queries | number_of_runs                 | int              |
+| 26 | DataflowsStagingLakehouse | queryinsights  | frequently_run_queries | min_run_total_elapsed_time_ms  | int              |
+| 27 | DataflowsStagingLakehouse | queryinsights  | frequently_run_queries | max_run_total_elapsed_time_ms  | int              |
+| 28 | DataflowsStagingLakehouse | queryinsights  | frequently_run_queries | avg_total_elapsed_time_ms      | int              |
+| 29 | DataflowsStagingLakehouse | queryinsights  | frequently_run_queries | number_of_successful_runs      | int              |
+| 30 | DataflowsStagingLakehouse | queryinsights  | frequently_run_queries | number_of_failed_runs          | int              |
+| 31 | DataflowsStagingLakehouse | queryinsights  | frequently_run_queries | number_of_canceled_runs        | int              |
+| 32 | DataflowsStagingLakehouse | queryinsights  | frequently_run_queries | last_run_total_elapsed_time_ms | int              |
+| 33 | DataflowsStagingLakehouse | queryinsights  | frequently_run_queries | last_run_start_time            | datetime2        |
+| 34 | DataflowsStagingLakehouse | queryinsights  | frequently_run_queries | last_dist_statement_id         | uniqueidentifier |
+| 35 | DataflowsStagingLakehouse | queryinsights  | frequently_run_queries | query_hash                     | varchar          |
+| 36 | DataflowsStagingLakehouse | queryinsights  | frequently_run_queries | last_run_command               | varchar          |",documentation
+3,4cda7e74-be75-5719-95fa-5caa9b029dbb-doc,,"The following columns are in the exec_sessions_history table in the DataflowsStagingLakehouse database:
+
+|    | TABLE_CATALOG             | TABLE_SCHEMA   | TABLE_NAME            | COLUMN_NAME                 | DATA_TYPE        |
+|---:|:--------------------------|:---------------|:----------------------|:----------------------------|:-----------------|
+| 37 | DataflowsStagingLakehouse | queryinsights  | exec_sessions_history | session_id                  | int              |
+| 38 | DataflowsStagingLakehouse | queryinsights  | exec_sessions_history | connection_id               | uniqueidentifier |
+| 39 | DataflowsStagingLakehouse | queryinsights  | exec_sessions_history | session_start_time          | datetime2        |
+| 40 | DataflowsStagingLakehouse | queryinsights  | exec_sessions_history | session_end_time            | datetime2        |
+| 41 | DataflowsStagingLakehouse | queryinsights  | exec_sessions_history | program_name                | varchar          |
+| 42 | DataflowsStagingLakehouse | queryinsights  | exec_sessions_history | login_name                  | varchar          |
+| 43 | DataflowsStagingLakehouse | queryinsights  | exec_sessions_history | status                      | varchar          |
+| 44 | DataflowsStagingLakehouse | queryinsights  | exec_sessions_history | context_info                | varchar          |
+| 45 | DataflowsStagingLakehouse | queryinsights  | exec_sessions_history | total_query_elapsed_time_ms | bigint           |
+| 46 | DataflowsStagingLakehouse | queryinsights  | exec_sessions_history | last_request_start_time     | datetime2        |
+| 47 | DataflowsStagingLakehouse | queryinsights  | exec_sessions_history | last_request_end_time       | datetime2        |
+| 48 | DataflowsStagingLakehouse | queryinsights  | exec_sessions_history | is_user_process             | bit              |
+| 49 | DataflowsStagingLakehouse | queryinsights  | exec_sessions_history | prev_error                  | int              |
+| 50 | DataflowsStagingLakehouse | queryinsights  | exec_sessions_history | group_id                    | bigint           |
+| 51 | DataflowsStagingLakehouse | queryinsights  | exec_sessions_history | database_id                 | int              |
+| 52 | DataflowsStagingLakehouse | queryinsights  | exec_sessions_history | authenticating_database_id  | int              |
+| 53 | DataflowsStagingLakehouse | queryinsights  | exec_sessions_history | open_transaction_count      | bigint           |
+| 54 | DataflowsStagingLakehouse | queryinsights  | exec_sessions_history | text_size                   | int              |
+| 55 | DataflowsStagingLakehouse | queryinsights  | exec_sessions_history | language                    | varchar          |
+| 56 | DataflowsStagingLakehouse | queryinsights  | exec_sessions_history | date_format                 | varchar          |
+| 57 | DataflowsStagingLakehouse | queryinsights  | exec_sessions_history | date_first                  | int              |
+| 58 | DataflowsStagingLakehouse | queryinsights  | exec_sessions_history | quoted_identifier           | bit              |
+| 59 | DataflowsStagingLakehouse | queryinsights  | exec_sessions_history | arithabort                  | bit              |
+| 60 | DataflowsStagingLakehouse | queryinsights  | exec_sessions_history | ansi_null_dflt_on           | bit              |
+| 61 | DataflowsStagingLakehouse | queryinsights  | exec_sessions_history | ansi_defaults               | bit              |
+| 62 | DataflowsStagingLakehouse | queryinsights  | exec_sessions_history | ansi_warnings               | bit              |
+| 63 | DataflowsStagingLakehouse | queryinsights  | exec_sessions_history | ansi_padding                | bit              |
+| 64 | DataflowsStagingLakehouse | queryinsights  | exec_sessions_history | ansi_nulls                  | bit              |
+| 65 | DataflowsStagingLakehouse | queryinsights  | exec_sessions_history | concat_null_yields_null     | bit              |
+| 66 | DataflowsStagingLakehouse | queryinsights  | exec_sessions_history | transaction_isolation_level | int              |
+| 67 | DataflowsStagingLakehouse | queryinsights  | exec_sessions_history | lock_timeout                | bigint           |
+| 68 | DataflowsStagingLakehouse | queryinsights  | exec_sessions_history | deadlock_priority           | int              |
+| 69 | DataflowsStagingLakehouse | queryinsights  | exec_sessions_history | original_security_id        | varchar          |
+| 70 | DataflowsStagingLakehouse | queryinsights  | exec_sessions_history | database_name               | varchar          |",documentation
+4,5c82769a-e6e7-5fb0-8fbc-b6fa92d390e3-doc,,"The following columns are in the sys_dw_manifest_files table in the DataflowsStagingLakehouse database:
+
+|    | TABLE_CATALOG             | TABLE_SCHEMA   | TABLE_NAME            | COLUMN_NAME          | DATA_TYPE        |
+|---:|:--------------------------|:---------------|:----------------------|:---------------------|:-----------------|
+| 71 | DataflowsStagingLakehouse | sys            | sys_dw_manifest_files | table_id             | int              |
+| 72 | DataflowsStagingLakehouse | sys            | sys_dw_manifest_files | commit_sequence_id   | bigint           |
+| 73 | DataflowsStagingLakehouse | sys            | sys_dw_manifest_files | file_id              | uniqueidentifier |
+| 74 | DataflowsStagingLakehouse | sys            | sys_dw_manifest_files | xdes_ts              | bigint           |
+| 75 | DataflowsStagingLakehouse | sys            | sys_dw_manifest_files | append_only          | bit              |
+| 76 | DataflowsStagingLakehouse | sys            | sys_dw_manifest_files | rows_inserted        | bigint           |
+| 77 | DataflowsStagingLakehouse | sys            | sys_dw_manifest_files | commit_timestamp     | datetime         |
+| 78 | DataflowsStagingLakehouse | sys            | sys_dw_manifest_files | source_table_guid    | uniqueidentifier |
+| 79 | DataflowsStagingLakehouse | sys            | sys_dw_manifest_files | manifest_file_name   | nvarchar         |
+| 80 | DataflowsStagingLakehouse | sys            | sys_dw_manifest_files | physical_object_guid | uniqueidentifier |",documentation
+5,3e1b6002-1d06-5d78-90f8-b2281fc58175-doc,,"The following columns are in the sys_dw_physical_table_forks table in the DataflowsStagingLakehouse database:
+
+|    | TABLE_CATALOG             | TABLE_SCHEMA   | TABLE_NAME                  | COLUMN_NAME          | DATA_TYPE        |
+|---:|:--------------------------|:---------------|:----------------------------|:---------------------|:-----------------|
+| 81 | DataflowsStagingLakehouse | sys            | sys_dw_physical_table_forks | commit_sequence_id   | bigint           |
+| 82 | DataflowsStagingLakehouse | sys            | sys_dw_physical_table_forks | table_id             | int              |
+| 83 | DataflowsStagingLakehouse | sys            | sys_dw_physical_table_forks | fork_guid            | uniqueidentifier |
+| 84 | DataflowsStagingLakehouse | sys            | sys_dw_physical_table_forks | source_table_guid    | uniqueidentifier |
+| 85 | DataflowsStagingLakehouse | sys            | sys_dw_physical_table_forks | source_database_guid | uniqueidentifier |
+| 86 | DataflowsStagingLakehouse | sys            | sys_dw_physical_table_forks | xdes_ts              | bigint           |
+| 87 | DataflowsStagingLakehouse | sys            | sys_dw_physical_table_forks | commit_timestamp     | datetime         |
+| 88 | DataflowsStagingLakehouse | sys            | sys_dw_physical_table_forks | physical_object_guid | uniqueidentifier |
+| 89 | DataflowsStagingLakehouse | sys            | sys_dw_physical_table_forks | folder_name          | nvarchar         |",documentation
+6,9be850d6-e7af-5812-b0f7-a64806884837-doc,,"The following columns are in the sys_dw_physical_tables table in the DataflowsStagingLakehouse database:
+
+|    | TABLE_CATALOG             | TABLE_SCHEMA   | TABLE_NAME             | COLUMN_NAME             | DATA_TYPE        |
+|---:|:--------------------------|:---------------|:-----------------------|:------------------------|:-----------------|
+| 90 | DataflowsStagingLakehouse | sys            | sys_dw_physical_tables | object_id               | int              |
+| 91 | DataflowsStagingLakehouse | sys            | sys_dw_physical_tables | physical_object_guid    | uniqueidentifier |
+| 92 | DataflowsStagingLakehouse | sys            | sys_dw_physical_tables | fork_guid               | uniqueidentifier |
+| 93 | DataflowsStagingLakehouse | sys            | sys_dw_physical_tables | clone_scratch_guid      | uniqueidentifier |
+| 94 | DataflowsStagingLakehouse | sys            | sys_dw_physical_tables | manifest_feature_status | int              |
+| 95 | DataflowsStagingLakehouse | sys            | sys_dw_physical_tables | manifest_root           | nvarchar         |",documentation
+7,d64bb02c-64be-5542-8e62-361d6f5c33c7-doc,,"The following columns are in the sys_dw_checkpoint_files table in the DataflowsStagingLakehouse database:
+
+|     | TABLE_CATALOG             | TABLE_SCHEMA   | TABLE_NAME              | COLUMN_NAME          | DATA_TYPE        |
+|----:|:--------------------------|:---------------|:------------------------|:---------------------|:-----------------|
+|  96 | DataflowsStagingLakehouse | sys            | sys_dw_checkpoint_files | table_id             | int              |
+|  97 | DataflowsStagingLakehouse | sys            | sys_dw_checkpoint_files | commit_sequence_id   | bigint           |
+|  98 | DataflowsStagingLakehouse | sys            | sys_dw_checkpoint_files | part                 | int              |
+|  99 | DataflowsStagingLakehouse | sys            | sys_dw_checkpoint_files | file_id              | uniqueidentifier |
+| 100 | DataflowsStagingLakehouse | sys            | sys_dw_checkpoint_files | version              | bigint           |
+| 101 | DataflowsStagingLakehouse | sys            | sys_dw_checkpoint_files | source_table_guid    | uniqueidentifier |
+| 102 | DataflowsStagingLakehouse | sys            | sys_dw_checkpoint_files | physical_object_guid | uniqueidentifier |
+| 103 | DataflowsStagingLakehouse | sys            | sys_dw_checkpoint_files | checkpoint_file_name | nvarchar         |",documentation
+8,2458e01b-f882-53ee-80e6-bea168fe313a-doc,,"The following columns are in the managed_delta_table_log_files table in the DataflowsStagingLakehouse database:
+
+|     | TABLE_CATALOG             | TABLE_SCHEMA   | TABLE_NAME                    | COLUMN_NAME        | DATA_TYPE        |
+|----:|:--------------------------|:---------------|:------------------------------|:-------------------|:-----------------|
+| 104 | DataflowsStagingLakehouse | sys            | managed_delta_table_log_files | commit_sequence_id | bigint           |
+| 105 | DataflowsStagingLakehouse | sys            | managed_delta_table_log_files | file_guid          | uniqueidentifier |
+| 106 | DataflowsStagingLakehouse | sys            | managed_delta_table_log_files | xdes_ts            | bigint           |
+| 107 | DataflowsStagingLakehouse | sys            | managed_delta_table_log_files | append_only        | bit              |
+| 108 | DataflowsStagingLakehouse | sys            | managed_delta_table_log_files | rows_inserted      | bigint           |
+| 109 | DataflowsStagingLakehouse | sys            | managed_delta_table_log_files | commit_time        | datetime         |
+| 110 | DataflowsStagingLakehouse | sys            | managed_delta_table_log_files | source_table_guid  | uniqueidentifier |
+| 111 | DataflowsStagingLakehouse | sys            | managed_delta_table_log_files | manifest_file_name | nvarchar         |
+| 112 | DataflowsStagingLakehouse | sys            | managed_delta_table_log_files | table_guid         | uniqueidentifier |",documentation
+9,c8d7da8b-2c21-56c9-a369-c9fd591124cf-doc,,"The following columns are in the managed_delta_table_forks table in the DataflowsStagingLakehouse database:
+
+|     | TABLE_CATALOG             | TABLE_SCHEMA   | TABLE_NAME                | COLUMN_NAME          | DATA_TYPE        |
+|----:|:--------------------------|:---------------|:--------------------------|:---------------------|:-----------------|
+| 113 | DataflowsStagingLakehouse | sys            | managed_delta_table_forks | commit_sequence_id   | bigint           |
+| 114 | DataflowsStagingLakehouse | sys            | managed_delta_table_forks | fork_guid            | uniqueidentifier |
+| 115 | DataflowsStagingLakehouse | sys            | managed_delta_table_forks | source_table_guid    | uniqueidentifier |
+| 116 | DataflowsStagingLakehouse | sys            | managed_delta_table_forks | source_database_guid | uniqueidentifier |
+| 117 | DataflowsStagingLakehouse | sys            | managed_delta_table_forks | xdes_ts              | bigint           |
+| 118 | DataflowsStagingLakehouse | sys            | managed_delta_table_forks | commit_time          | datetime         |
+| 119 | DataflowsStagingLakehouse | sys            | managed_delta_table_forks | table_guid           | uniqueidentifier |
+| 120 | DataflowsStagingLakehouse | sys            | managed_delta_table_forks | folder_name          | nvarchar         |",documentation
+10,1ba518e0-f835-5848-b751-bcf5101191ba-doc,,"The following columns are in the managed_delta_tables table in the DataflowsStagingLakehouse database:
+
+|     | TABLE_CATALOG             | TABLE_SCHEMA   | TABLE_NAME           | COLUMN_NAME              | DATA_TYPE        |
+|----:|:--------------------------|:---------------|:---------------------|:-------------------------|:-----------------|
+| 121 | DataflowsStagingLakehouse | sys            | managed_delta_tables | table_id                 | bigint           |
+| 122 | DataflowsStagingLakehouse | sys            | managed_delta_tables | table_guid               | uniqueidentifier |
+| 123 | DataflowsStagingLakehouse | sys            | managed_delta_tables | fork_guid                | uniqueidentifier |
+| 124 | DataflowsStagingLakehouse | sys            | managed_delta_tables | delta_log_feature_status | int              |
+| 125 | DataflowsStagingLakehouse | sys            | managed_delta_tables | manifest_root            | nvarchar         |
+| 126 | DataflowsStagingLakehouse | sys            | managed_delta_tables | drop_commit_time         | datetime         |
+| 127 | DataflowsStagingLakehouse | sys            | managed_delta_tables | object_id                | int              |
+| 128 | DataflowsStagingLakehouse | sys            | managed_delta_tables | table_classification     | tinyint          |",documentation
+11,877c9965-87b4-5c98-a65c-6db318d05723-doc,,"The following columns are in the managed_delta_table_checkpoints table in the DataflowsStagingLakehouse database:
+
+|     | TABLE_CATALOG             | TABLE_SCHEMA   | TABLE_NAME                      | COLUMN_NAME                  | DATA_TYPE        |
+|----:|:--------------------------|:---------------|:--------------------------------|:-----------------------------|:-----------------|
+| 129 | DataflowsStagingLakehouse | sys            | managed_delta_table_checkpoints | delta_log_commit_sequence_id | bigint           |
+| 130 | DataflowsStagingLakehouse | sys            | managed_delta_table_checkpoints | part                         | int              |
+| 131 | DataflowsStagingLakehouse | sys            | managed_delta_table_checkpoints | file_guid                    | uniqueidentifier |
+| 132 | DataflowsStagingLakehouse | sys            | managed_delta_table_checkpoints | version                      | bigint           |
+| 133 | DataflowsStagingLakehouse | sys            | managed_delta_table_checkpoints | source_table_guid            | uniqueidentifier |
+| 134 | DataflowsStagingLakehouse | sys            | managed_delta_table_checkpoints | table_guid                   | uniqueidentifier |
+| 135 | DataflowsStagingLakehouse | sys            | managed_delta_table_checkpoints | checkpoint_file_name         | nvarchar         |",documentation
+12,1e7f16af-5222-5b72-8abc-8bdb6e378b91-doc,,"The following columns are in the sys_dw_schemas table in the DataflowsStagingLakehouse database:
+
+|     | TABLE_CATALOG             | TABLE_SCHEMA   | TABLE_NAME     | COLUMN_NAME   | DATA_TYPE   |
+|----:|:--------------------------|:---------------|:---------------|:--------------|:------------|
+| 136 | DataflowsStagingLakehouse | sys            | sys_dw_schemas | name          | nvarchar    |
+| 137 | DataflowsStagingLakehouse | sys            | sys_dw_schemas | schema_id     | int         |
+| 138 | DataflowsStagingLakehouse | sys            | sys_dw_schemas | principal_id  | int         |
+| 139 | DataflowsStagingLakehouse | sys            | sys_dw_schemas | is_internal   | bit         |",documentation
+13,1e5c66a7-c5d7-57c4-9379-3d4f530f37a2-doc,,"The following columns are in the ccda45ebea874211804d512e99628f47_81e383a1_002D3812_002D4466_002D9036_002D0b32f766d08a table in the DataflowsStagingLakehouse database:
+
+|     | TABLE_CATALOG             | TABLE_SCHEMA   | TABLE_NAME                                                                            | COLUMN_NAME   | DATA_TYPE   |
+|----:|:--------------------------|:---------------|:--------------------------------------------------------------------------------------|:--------------|:------------|
+| 140 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_81e383a1_002D3812_002D4466_002D9036_002D0b32f766d08a | Column1       | bigint      |
+| 141 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_81e383a1_002D3812_002D4466_002D9036_002D0b32f766d08a | Column2       | varchar     |
+| 142 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_81e383a1_002D3812_002D4466_002D9036_002D0b32f766d08a | Column3       | decimal     |",documentation
+14,54d8840c-5f95-5d73-b15f-f4db5f110ee2-doc,,"The following columns are in the ccda45ebea874211804d512e99628f47_c0c5f37b_002Da7e0_002D4aa1_002D9c90_002D709329821c5b table in the DataflowsStagingLakehouse database:
+
+|     | TABLE_CATALOG             | TABLE_SCHEMA   | TABLE_NAME                                                                            | COLUMN_NAME   | DATA_TYPE   |
+|----:|:--------------------------|:---------------|:--------------------------------------------------------------------------------------|:--------------|:------------|
+| 143 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_c0c5f37b_002Da7e0_002D4aa1_002D9c90_002D709329821c5b | Column1       | bigint      |
+| 144 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_c0c5f37b_002Da7e0_002D4aa1_002D9c90_002D709329821c5b | Column2       | varchar     |
+| 145 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_c0c5f37b_002Da7e0_002D4aa1_002D9c90_002D709329821c5b | Column3       | varchar     |
+| 146 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_c0c5f37b_002Da7e0_002D4aa1_002D9c90_002D709329821c5b | Column4       | decimal     |",documentation
+15,5357dab5-7063-542c-8fc7-3b2c4cdca375-doc,,"The following columns are in the ccda45ebea874211804d512e99628f47_d9a35987_002D5de5_002D43ad_002Db7ae_002D965a56e0c2b6 table in the DataflowsStagingLakehouse database:
+
+|     | TABLE_CATALOG             | TABLE_SCHEMA   | TABLE_NAME                                                                            | COLUMN_NAME   | DATA_TYPE   |
+|----:|:--------------------------|:---------------|:--------------------------------------------------------------------------------------|:--------------|:------------|
+| 147 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_d9a35987_002D5de5_002D43ad_002Db7ae_002D965a56e0c2b6 | Column1       | bigint      |
+| 148 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_d9a35987_002D5de5_002D43ad_002Db7ae_002D965a56e0c2b6 | Column2       | bigint      |
+| 149 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_d9a35987_002D5de5_002D43ad_002Db7ae_002D965a56e0c2b6 | Column3       | varchar     |
+| 150 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_d9a35987_002D5de5_002D43ad_002Db7ae_002D965a56e0c2b6 | Column4       | varchar     |",documentation
+16,f06898f3-739a-5628-80ed-538cd776ce44-doc,,"The following columns are in the ccda45ebea874211804d512e99628f47_6fa649ad_002Dffcb_002D4266_002Da1a9_002Ddcbdbe75a862 table in the DataflowsStagingLakehouse database:
+
+|     | TABLE_CATALOG             | TABLE_SCHEMA   | TABLE_NAME                                                                            | COLUMN_NAME   | DATA_TYPE   |
+|----:|:--------------------------|:---------------|:--------------------------------------------------------------------------------------|:--------------|:------------|
+| 151 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_6fa649ad_002Dffcb_002D4266_002Da1a9_002Ddcbdbe75a862 | Column1       | bigint      |
+| 152 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_6fa649ad_002Dffcb_002D4266_002Da1a9_002Ddcbdbe75a862 | Column2       | varchar     |
+| 153 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_6fa649ad_002Dffcb_002D4266_002Da1a9_002Ddcbdbe75a862 | Column3       | varchar     |",documentation
+17,19a9c0cf-1a51-537b-92f6-215f85941200-doc,,"The following columns are in the ccda45ebea874211804d512e99628f47_4c83649e_002D8308_002D48be_002Dbfe7_002Decd93bdba2b8 table in the DataflowsStagingLakehouse database:
+
+|     | TABLE_CATALOG             | TABLE_SCHEMA   | TABLE_NAME                                                                            | COLUMN_NAME   | DATA_TYPE   |
+|----:|:--------------------------|:---------------|:--------------------------------------------------------------------------------------|:--------------|:------------|
+| 154 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_4c83649e_002D8308_002D48be_002Dbfe7_002Decd93bdba2b8 | Column1       | bigint      |
+| 155 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_4c83649e_002D8308_002D48be_002Dbfe7_002Decd93bdba2b8 | Column2       | varchar     |
+| 156 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_4c83649e_002D8308_002D48be_002Dbfe7_002Decd93bdba2b8 | Column3       | varchar     |
+| 157 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_4c83649e_002D8308_002D48be_002Dbfe7_002Decd93bdba2b8 | Column4       | varchar     |
+| 158 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_4c83649e_002D8308_002D48be_002Dbfe7_002Decd93bdba2b8 | Column5       | datetime2   |
+| 159 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_4c83649e_002D8308_002D48be_002Dbfe7_002Decd93bdba2b8 | Column6       | datetime2   |",documentation
+18,02b9ee5b-1212-5d48-bea8-87c8a618f4de-doc,,"The following columns are in the ccda45ebea874211804d512e99628f47_47af230a_002D4bdd_002D45fe_002D8adf_002D361db702b821 table in the DataflowsStagingLakehouse database:
+
+|     | TABLE_CATALOG             | TABLE_SCHEMA   | TABLE_NAME                                                                            | COLUMN_NAME   | DATA_TYPE   |
+|----:|:--------------------------|:---------------|:--------------------------------------------------------------------------------------|:--------------|:------------|
+| 160 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_47af230a_002D4bdd_002D45fe_002D8adf_002D361db702b821 | Column1       | bigint      |
+| 161 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_47af230a_002D4bdd_002D45fe_002D8adf_002D361db702b821 | Column2       | bigint      |
+| 162 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_47af230a_002D4bdd_002D45fe_002D8adf_002D361db702b821 | Column3       | bigint      |
+| 163 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_47af230a_002D4bdd_002D45fe_002D8adf_002D361db702b821 | Column4       | decimal     |",documentation
+19,4da3d6b2-987d-51f9-be58-fe49443db423-doc,,"The following columns are in the ccda45ebea874211804d512e99628f47_b67ac4f6_002D993e_002D42f4_002Db8eb_002D68f393740aaf table in the DataflowsStagingLakehouse database:
+
+|     | TABLE_CATALOG             | TABLE_SCHEMA   | TABLE_NAME                                                                            | COLUMN_NAME   | DATA_TYPE   |
+|----:|:--------------------------|:---------------|:--------------------------------------------------------------------------------------|:--------------|:------------|
+| 164 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_b67ac4f6_002D993e_002D42f4_002Db8eb_002D68f393740aaf | Column1       | bigint      |
+| 165 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_b67ac4f6_002D993e_002D42f4_002Db8eb_002D68f393740aaf | Column2       | bigint      |
+| 166 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_b67ac4f6_002D993e_002D42f4_002Db8eb_002D68f393740aaf | Column3       | varchar     |
+| 167 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_b67ac4f6_002D993e_002D42f4_002Db8eb_002D68f393740aaf | Column4       | bigint      |
+| 168 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_b67ac4f6_002D993e_002D42f4_002Db8eb_002D68f393740aaf | Column5       | datetime2   |
+| 169 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_b67ac4f6_002D993e_002D42f4_002Db8eb_002D68f393740aaf | Column6       | varchar     |
+| 170 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_b67ac4f6_002D993e_002D42f4_002Db8eb_002D68f393740aaf | Column7       | decimal     |
+| 171 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_b67ac4f6_002D993e_002D42f4_002Db8eb_002D68f393740aaf | Column8       | decimal     |",documentation
+20,441f0ee2-46cc-5ada-89b4-66a584412719-doc,,"The following columns are in the ccda45ebea874211804d512e99628f47_5b8e4c77_002Dcbf0_002D4a00_002D92ba_002D548c13931e4e table in the DataflowsStagingLakehouse database:
+
+|     | TABLE_CATALOG             | TABLE_SCHEMA   | TABLE_NAME                                                                            | COLUMN_NAME   | DATA_TYPE   |
+|----:|:--------------------------|:---------------|:--------------------------------------------------------------------------------------|:--------------|:------------|
+| 172 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_5b8e4c77_002Dcbf0_002D4a00_002D92ba_002D548c13931e4e | Column1       | bigint      |
+| 173 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_5b8e4c77_002Dcbf0_002D4a00_002D92ba_002D548c13931e4e | Column2       | varchar     |
+| 174 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_5b8e4c77_002Dcbf0_002D4a00_002D92ba_002D548c13931e4e | Column3       | varchar     |
+| 175 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_5b8e4c77_002Dcbf0_002D4a00_002D92ba_002D548c13931e4e | Column4       | bigint      |
+| 176 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_5b8e4c77_002Dcbf0_002D4a00_002D92ba_002D548c13931e4e | Column5       | varchar     |",documentation
+21,ecb2ba53-08eb-5ea9-87b4-456d929601c6-doc,,"The following columns are in the ccda45ebea874211804d512e99628f47_b06a6e72_002D8f2d_002D4ffb_002D9cf1_002D1e6c9a5d81f6 table in the DataflowsStagingLakehouse database:
+
+|     | TABLE_CATALOG             | TABLE_SCHEMA   | TABLE_NAME                                                                            | COLUMN_NAME   | DATA_TYPE   |
+|----:|:--------------------------|:---------------|:--------------------------------------------------------------------------------------|:--------------|:------------|
+| 177 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_b06a6e72_002D8f2d_002D4ffb_002D9cf1_002D1e6c9a5d81f6 | Column1       | bigint      |
+| 178 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_b06a6e72_002D8f2d_002D4ffb_002D9cf1_002D1e6c9a5d81f6 | Column2       | varchar     |
+| 179 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_b06a6e72_002D8f2d_002D4ffb_002D9cf1_002D1e6c9a5d81f6 | Column3       | bigint      |",documentation
+22,53b07b2d-0a69-56cd-ba0d-92b11400aebe-doc,,"The following columns are in the ccda45ebea874211804d512e99628f47_cf1b1bc6_002D860e_002D40fa_002Dbaac_002D44f105359148 table in the DataflowsStagingLakehouse database:
+
+|     | TABLE_CATALOG             | TABLE_SCHEMA   | TABLE_NAME                                                                            | COLUMN_NAME   | DATA_TYPE   |
+|----:|:--------------------------|:---------------|:--------------------------------------------------------------------------------------|:--------------|:------------|
+| 180 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_cf1b1bc6_002D860e_002D40fa_002Dbaac_002D44f105359148 | Column1       | bigint      |
+| 181 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_cf1b1bc6_002D860e_002D40fa_002Dbaac_002D44f105359148 | Column2       | bigint      |
+| 182 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_cf1b1bc6_002D860e_002D40fa_002Dbaac_002D44f105359148 | Column3       | bigint      |
+| 183 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_cf1b1bc6_002D860e_002D40fa_002Dbaac_002D44f105359148 | Column4       | datetime2   |
+| 184 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_cf1b1bc6_002D860e_002D40fa_002Dbaac_002D44f105359148 | Column5       | varchar     |
+| 185 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_cf1b1bc6_002D860e_002D40fa_002Dbaac_002D44f105359148 | Column6       | decimal     |",documentation
+23,7923316f-1a2c-5232-8458-ca5a640101e7-doc,,"The following columns are in the ccda45ebea874211804d512e99628f47_61a3a76c_002Dd529_002D4981_002Daa9c_002Ded36f450579e table in the DataflowsStagingLakehouse database:
+
+|     | TABLE_CATALOG             | TABLE_SCHEMA   | TABLE_NAME                                                                            | COLUMN_NAME   | DATA_TYPE   |
+|----:|:--------------------------|:---------------|:--------------------------------------------------------------------------------------|:--------------|:------------|
+| 186 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_61a3a76c_002Dd529_002D4981_002Daa9c_002Ded36f450579e | Column1       | bigint      |
+| 187 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_61a3a76c_002Dd529_002D4981_002Daa9c_002Ded36f450579e | Column2       | varchar     |
+| 188 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_61a3a76c_002Dd529_002D4981_002Daa9c_002Ded36f450579e | Column3       | bigint      |
+| 189 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_61a3a76c_002Dd529_002D4981_002Daa9c_002Ded36f450579e | Column4       | varchar     |
+| 190 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_61a3a76c_002Dd529_002D4981_002Daa9c_002Ded36f450579e | Column5       | decimal     |
+| 191 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_61a3a76c_002Dd529_002D4981_002Daa9c_002Ded36f450579e | Column6       | bigint      |",documentation
+24,eba287da-7468-5f21-9366-08d689df4d9f-doc,,"The following columns are in the ccda45ebea874211804d512e99628f47_ddeef00b_002Dd1a3_002D4b78_002D938f_002D5b179f30d00b table in the DataflowsStagingLakehouse database:
+
+|     | TABLE_CATALOG             | TABLE_SCHEMA   | TABLE_NAME                                                                            | COLUMN_NAME   | DATA_TYPE   |
+|----:|:--------------------------|:---------------|:--------------------------------------------------------------------------------------|:--------------|:------------|
+| 192 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_ddeef00b_002Dd1a3_002D4b78_002D938f_002D5b179f30d00b | Column1       | bigint      |
+| 193 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_ddeef00b_002Dd1a3_002D4b78_002D938f_002D5b179f30d00b | Column2       | varchar     |
+| 194 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_ddeef00b_002Dd1a3_002D4b78_002D938f_002D5b179f30d00b | Column3       | bigint      |
+| 195 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_ddeef00b_002Dd1a3_002D4b78_002D938f_002D5b179f30d00b | Column4       | varchar     |
+| 196 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_ddeef00b_002Dd1a3_002D4b78_002D938f_002D5b179f30d00b | Column5       | decimal     |
+| 197 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_ddeef00b_002Dd1a3_002D4b78_002D938f_002D5b179f30d00b | Column6       | decimal     |
+| 198 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_ddeef00b_002Dd1a3_002D4b78_002D938f_002D5b179f30d00b | Column7       | decimal     |",documentation
+25,62e8fea6-bb32-56ff-b7a3-9fe2f1f62e81-doc,,"The following columns are in the ccda45ebea874211804d512e99628f47_13552031_002D104a_002D4a04_002Dabf6_002D0a45def6b844 table in the DataflowsStagingLakehouse database:
+
+|     | TABLE_CATALOG             | TABLE_SCHEMA   | TABLE_NAME                                                                            | COLUMN_NAME   | DATA_TYPE   |
+|----:|:--------------------------|:---------------|:--------------------------------------------------------------------------------------|:--------------|:------------|
+| 199 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_13552031_002D104a_002D4a04_002Dabf6_002D0a45def6b844 | Column1       | varchar     |
+| 200 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_13552031_002D104a_002D4a04_002Dabf6_002D0a45def6b844 | Column2       | bigint      |
+| 201 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_13552031_002D104a_002D4a04_002Dabf6_002D0a45def6b844 | Column3       | decimal     |",documentation
+26,04a08f69-243f-5a43-96ea-65a25b586738-doc,,"The following columns are in the ccda45ebea874211804d512e99628f47_bea76b43_002D1d5f_002D4ab3_002Db6a8_002D55d49d3c3b0c table in the DataflowsStagingLakehouse database:
+
+|     | TABLE_CATALOG             | TABLE_SCHEMA   | TABLE_NAME                                                                            | COLUMN_NAME   | DATA_TYPE   |
+|----:|:--------------------------|:---------------|:--------------------------------------------------------------------------------------|:--------------|:------------|
+| 202 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_bea76b43_002D1d5f_002D4ab3_002Db6a8_002D55d49d3c3b0c | Column1       | bigint      |
+| 203 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_bea76b43_002D1d5f_002D4ab3_002Db6a8_002D55d49d3c3b0c | Column2       | bigint      |
+| 204 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_bea76b43_002D1d5f_002D4ab3_002Db6a8_002D55d49d3c3b0c | Column3       | decimal     |
+| 205 | DataflowsStagingLakehouse | dbo            | ccda45ebea874211804d512e99628f47_bea76b43_002D1d5f_002D4ab3_002Db6a8_002D55d49d3c3b0c | Column4       | datetime2   |",documentation
+27,3e007dfe-058f-58bb-a602-0add76c9e277-doc,,"Wealth Asset Management Database Documentation
+
+Overview
+The Wealth Asset Management database is designed to support a wealth management platform. It provides a structured and organized way to manage clients' portfolios, financial accounts, assets, transactions, and risk assessments. This database aims to help wealth managers oversee their clients' financial standings, evaluate risks, and generate insights and projections for future wealth growth.
+
+The database comprises several tables, views, and stored procedures. It stores detailed information about clients, their portfolios, assets, accounts, and transaction histories. It also contains key metrics related to risk assessment and wealth projections. The views provide a summarized, digestible view of this data for wealth managers, while stored procedures perform complex operations such as risk assessment and portfolio analysis.
+
+---
+
+ Schema Design
+
+Key Entities and Relationships
+
+1. Clients
+   - Represents individuals or organizations that are being managed by wealth managers.
+   - Relationships:
+     - Each client can have multiple portfolios.
+     - Each client is associated with multiple financial accounts.
+
+2. Portfolios
+   - Represents collections of assets that belong to a specific client.
+   - Relationships:
+     - A portfolio belongs to one client.
+     - A portfolio contains multiple assets.
+     - A portfolio is associated with transactions.
+
+3. Assets
+   - Represents individual financial products (e.g., stocks, bonds, real estate) within a portfolio.
+   - Relationships:
+     - An asset belongs to a specific portfolio.
+     - An asset can be involved in multiple transactions.
+
+4. Financial Accounts
+   - Represents bank accounts or investment accounts held by clients.
+   - Relationships:
+     - Each financial account is associated with one client.
+     - Financial accounts track account balance and are linked to transactions.
+
+5. Transactions
+   - Represents financial operations like buying or selling assets, deposits, and withdrawals.
+   - Relationships:
+     - A transaction is linked to a specific account.
+     - Transactions are associated with assets and portfolios.
+     - Each transaction impacts the overall portfolio value and client wealth.
+
+6. Risk Assessments
+   - Tracks the risk levels associated with individual clients based on their financial activities.
+   - Relationships:
+     - Each client is assigned a risk score.
+
+---
+
+ Tables
+
+1. Clients
+   - Stores details about the client, such as name, date of birth, and contact information.
+   - Columns:
+     - `ClientID`: Primary key
+     - `Name`, `Email`, `DateOfBirth`, etc.
+
+2. Portfolios
+   - Stores information about the portfolios managed for each client.
+   - Columns:
+     - `PortfolioID`: Primary key
+     - `ClientID`: Foreign key referencing `Clients`
+     - `PortfolioName`, `CreationDate`
+
+3. Assets
+   - Stores individual assets within a portfolio.
+   - Columns:
+     - `AssetID`: Primary key
+     - `PortfolioID`: Foreign key referencing `Portfolios`
+     - `AssetType`, `AssetValue`
+
+4. FinancialAccounts
+   - Stores account information related to clients.
+   - Columns:
+     - `AccountID`: Primary key
+     - `ClientID`: Foreign key referencing `Clients`
+     - `AccountNumber`, `AccountType`, `Balance`
+
+5. Transactions
+   - Stores details of transactions involving assets and accounts.
+   - Columns:
+     - `TransactionID`: Primary key
+     - `PortfolioID`: Foreign key referencing `Portfolios`
+     - `AssetID`: Foreign key referencing `Assets`
+     - `AccountID`: Foreign key referencing `FinancialAccounts`
+     - `TransactionDate`, `TransactionAmount`
+
+6. RiskAssessments
+   - Stores risk assessment data for clients.
+   - Columns:
+     - `AssessmentID`: Primary key
+     - `ClientID`: Foreign key referencing `Clients`
+     - `RiskScore`, `AssessmentDate`
+
+---
+
+ Views
+
+1. PortfolioAssetAllocation
+   - Provides a detailed view of asset allocation within each portfolio.
+   - Shows how the client's investments are spread across different asset types.
+
+2. ClientPortfolioValue
+   - Summarizes the total value managed for each client.
+   - Gives an overview of the combined portfolio value across all assets for each client.
+
+3. PortfolioSummary
+   - Offers a comprehensive view of each portfolio.
+   - Includes the total value and distribution of assets.
+
+4. AccountTransactionHistory
+   - Displays a chronological list of all transactions.
+   - Useful for monitoring recent activities in a client's financial accounts.
+
+5. OverallWealthSummary
+   - Summarizes the total wealth managed by breaking it down by asset type.
+   - Provides a high-level view of a client’s wealth distribution.
+
+---
+
+ Stored Procedures
+
+1. RiskAssessmentProcedure
+   - This procedure calculates the risk assessment for each client based on the client’s portfolio allocation, asset volatility, and transaction history. It aggregates risk scores and updates the client's risk level in the database.
+
+   ```sql
+   EXEC RiskAssessmentProcedure @ClientID;
+   ```
+
+2. PortfolioAnalysisProcedure
+   - Analyzes the overall performance of a client’s portfolio. This procedure calculates metrics such as the total portfolio value, asset distribution, and recent transactions.
+   - It provides an overview of how the portfolio is performing and flags any major risks.
+
+   ```sql
+   EXEC PortfolioAnalysisProcedure @PortfolioID;
+   ```
+
+3. TransactionHistoryProcedure
+   - Generates a detailed report of the transaction history for a specific portfolio or account.
+   - This procedure helps wealth managers trace past financial activities for auditing and analysis purposes.
+
+   ```sql
+   EXEC TransactionHistoryProcedure @PortfolioID;
+   ```
+
+4. WealthProjectionProcedure
+   - Calculates future projections of wealth growth based on current asset values, expected returns, and market trends.
+   - This helps clients and managers make informed decisions about future investments.
+
+   ```sql
+   EXEC WealthProjectionProcedure @ClientID;
+   ```
+
+---
+
+ Relationships and Integrity Constraints
+
+- Foreign Keys: Enforce referential integrity between tables such as `ClientID` in `Portfolios` and `FinancialAccounts`, `PortfolioID` in `Assets` and `Transactions`, etc.
+- Primary Keys: Uniquely identify each record in every table (e.g., `ClientID`, `PortfolioID`, `TransactionID`).
+- Indexes: Optimize queries on common access patterns, particularly for foreign keys and portfolio summaries.
+
+ Use Cases
+
+1. Wealth Manager’s Dashboard
+   - Uses views like `PortfolioAssetAllocation`, `ClientPortfolioValue`, and `OverallWealthSummary` to display an overview of a client’s wealth status and performance.
+
+2. Client Portfolio Analysis
+   - Wealth managers can execute stored procedures to perform deeper portfolio analysis, identify risks, and generate wealth projections for strategic planning.
+
+3. Transaction Monitoring
+   - By utilizing the `AccountTransactionHistory` view and `TransactionHistoryProcedure`, wealth managers can track recent account activities to detect unusual behavior or opportunities for intervention.
+
+ Conclusion
+
+This Wealth Asset Management Database is designed to meet the needs of wealth managers who require comprehensive visibility into client portfolios, risk assessments, and future wealth projections. It incorporates efficient data organization and provides useful tools for decision-making through its well-structured schema, views, and stored procedures.",documentation
