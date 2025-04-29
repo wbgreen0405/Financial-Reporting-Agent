@@ -1,5 +1,19 @@
-theme: minima
 title: Financial Reporting Agent
-description: AI-powered wealth management insights using Microsoft Fabric, Vanna AI, and GPT-4.
-markdown: kramdown
-repository: your-repo/financial-reporting-agent
+description: AI-powered insights with Microsoft Fabric + Vanna AI
+theme: just-the-docs
+
+# Enable documentation navigation
+collections:
+  docs:
+    output: true
+    permalink: /:path/
+
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default
+      navigation: docs
+
+# Optional: GitHub repo link
+repository: wbgreen0405/Financial-Reporting-Agent
