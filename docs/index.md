@@ -1,52 +1,50 @@
-# 💼 Microsoft Fabric Financial Reporting Agent
+---
+title: Financial Reporting Agent
+layout: default
+---
 
-Welcome to the official documentation site for the **Financial Reporting Agent**, powered by **Microsoft Fabric**, **Vanna AI**, and **GPT-4**.
+# 💼 Financial Reporting Agent
+
+Welcome to the documentation hub for the **Financial Reporting Agent**, a project built using **Microsoft Fabric**, **Vanna AI**, and **GPT-4**.
+
+> ✅ Navigate using the sidebar to explore setup, architecture, usage, and integration details.
 
 ---
 
-## 📖 Overview
-
-The Financial Reporting Agent project is designed to transform wealth management data analysis by consolidating diverse financial datasets into Microsoft Fabric's OneLake architecture. It enables users to perform **natural language queries** over financial data, powered by a **Retrieval-Augmented Generation (RAG)** system and interactive dashboards.
+![Architecture](https://github.com/wbgreen0405/Financial-Reporting-Agent/blob/dev/assets/A_flowchart_diagram_in_a_hand-drawn_style_illustra.png?raw=true)
 
 ---
 
-## ✨ Key Features
+## 🧭 Project Overview
 
-- **Natural Language Querying**: Seamlessly convert English questions into SQL using Vanna AI + GPT-4.
-- **Real-Time Dashboards**: Instantly visualize portfolio, asset, and transaction data.
-- **Scalable Storage**: OneLake's lakehouse and warehouse architecture ensures efficient data management.
-- **AI-Enhanced Insights**: Retrieval-Augmented Generation (RAG) architecture enriches query responses.
-
----
-
-## 🛠 How It Works
-
-1. Data is ingested from Azure SQL and storage systems into Microsoft Fabric OneLake.
-2. Fabric organizes the data across a lakehouse and warehouse structure.
-3. Vanna AI and GPT-4 interpret user questions and generate SQL queries dynamically.
-4. Results are retrieved, analyzed, and visualized on real-time dashboards.
+This project provides a unified data platform for wealth management firms to:
+- Consolidate financial data into Microsoft Fabric's OneLake
+- Enable natural language querying using Vanna AI + GPT-4
+- Leverage RAG for contextual SQL generation
+- Visualize results through real-time dashboards
 
 ---
 
-## 🏗 Project Structure
+## 📂 Sections
 
-- **CreateDataWarehouse/**: SQL schema and data insertion scripts
-- **RAGToSQL/**: Training and inference modules for RAG
-- **LangchainFabrics/**: LangChain integration for enhanced query generation
-- **requirements.txt**: Python environment setup
-- **Architecture Diagram**: Visual overview of the system
+### [Setup Guide](setup.md)
+Step-by-step instructions to install dependencies, set up Fabric, and run scripts.
 
----
+### [Architecture](architecture.md)
+Diagram walkthrough and explanation of each component in the pipeline.
 
-## 🚀 Getting Started
+### [Text-to-SQL + RAG](rag-text2sql.md)
+How we use Retrieval-Augmented Generation and Vanna to power SQL generation.
 
-Check the [README](../README.md) for setup instructions to clone the repository, set up Microsoft Fabric, and start training your financial RAG system!
+### [LangChain Integration](langchain.md)
+Enabling dynamic prompts, multi-step queries, and conversational memory.
 
----
-
-## 📬 Contact
-
-Have a question or want to contribute?  
-Open an issue or start a discussion on our [GitHub repository](https://github.com/your-repo/issues).
+### [Run the App](run.md)
+Detailed commands and virtual environment setup to run the full project.
 
 ---
+
+## 📬 Need Help?
+
+Check our [GitHub Issues](https://github.com/wbgreen0405/Financial-Reporting-Agent/issues) or start a new discussion. We're here to help!
+
