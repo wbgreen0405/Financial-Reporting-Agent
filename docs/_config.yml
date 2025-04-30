@@ -2,18 +2,12 @@ title: Financial Reporting Agent
 description: AI-powered insights with Microsoft Fabric + Vanna AI
 theme: just-the-docs
 
-# Enable documentation navigation
-collections:
-  docs:
-    output: true
-    permalink: /:path/
+# GitHub repository integration
+repository_url: https://github.com/wbgreen0405/Financial-Reporting-Agent
+edit_url: https://github.com/wbgreen0405/Financial-Reporting-Agent/edit/dev/docs/
+show_edit_on_github: true
 
-defaults:
-  - scope:
-      path: ""
-    values:
-      layout: default
-      navigation: docs
-
-# Optional: GitHub repo link
-repository: wbgreen0405/Financial-Reporting-Agent
+# Custom CSS path
+just_the_docs:
+  custom_css:
+    - /assets/css/custom.css
