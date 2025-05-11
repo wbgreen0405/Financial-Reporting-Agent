@@ -8,6 +8,23 @@ This project consolidates wealth data into Microsoft Fabric's OneLake and provid
 
 ![Architecture Diagram](assets/A_flowchart_diagram_in_a_hand-drawn_style_illustra.png)  
 
+## 🖥 Demo Walkthrough
+
+### 🔐 Power BI Landing Page  
+![Power BI Landing Page](assets/Slide1.PNG)  
+*A sleek landing screen indicating the dashboard name (“Wealth”), last data refresh timestamp, and a link to open the live Power BI report.*
+
+---
+
+### 📊 Portfolio Overview Dashboard  
+![Portfolio Dashboard](assets/Slide2.PNG)  
+*This dashboard displays key metrics including Total AUM, Number of Portfolios, and Average Portfolio Value. It also showcases insights through:*
+
+- **Top Portfolio Value Breakdown** (Pie Chart)  
+- **Client Asset Allocation** (Bar Chart by Asset Type)  
+- **Top 10 Portfolios by Value**  
+- **Comprehensive Asset Value Distribution** (Stacked Bar Chart by Client and Asset Type)
+
 ## 🚀 Features
 
 - 🔍 **Natural Language to SQL** with Vanna AI + OpenAI
