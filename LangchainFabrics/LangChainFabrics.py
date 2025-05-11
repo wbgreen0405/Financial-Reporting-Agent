@@ -15,7 +15,7 @@ from langchain_community.tools.sql_database.tool import QuerySQLDataBaseTool
 class FabricSQLAgent:
     def __init__(self):
         # Load and validate environment variables
-        load_dotenv("INSERT PATH")
+        load_dotenv("PATH TO .env")
 
         required_vars = ["OPENAI_API_KEY", "SQL_ENDPOINT", "DATABASE_NAME", "RESOURCE_URL"]
         missing_vars = [var for var in required_vars if os.getenv(var) is None]
