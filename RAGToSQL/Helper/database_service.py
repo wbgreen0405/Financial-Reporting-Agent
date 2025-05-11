@@ -30,3 +30,4 @@ class DatabaseService:
         except Exception as e:
             print(f"❌ Error executing SQL: {e}")
             raise
+
