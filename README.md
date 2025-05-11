@@ -10,13 +10,9 @@ This project consolidates wealth data into Microsoft Fabric's OneLake and provid
 
 ## 🖥 Demo Walkthrough
 
-### 🔐 Power BI Landing Page  
-![Power BI Landing Page](assets/Slide1.PNG)  
-*A sleek landing screen indicating the dashboard name (“Wealth”), last data refresh timestamp, and a link to open the live Power BI report.*
-
 ---
 
-### 📊 Portfolio Overview Dashboard  
+### 📊 Power BI Portfolio Overview Dashboard  
 ![Portfolio Dashboard](assets/Slide2.PNG)  
 *This dashboard displays key metrics including Total AUM, Number of Portfolios, and Average Portfolio Value. It also showcases insights through:*
 
