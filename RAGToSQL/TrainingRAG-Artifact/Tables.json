@@ -1,0 +1,34 @@
+[
+    {
+        "query_type": "table",
+        "command": "CREATE TABLE [wealth_data].[dbo].[Advisors] (     AdvisorID INT IDENTITY(1,1) PRIMARY KEY,     Name NVARCHAR(100) NOT NULL,     ContactInfo NVARCHAR(100) );"
+    },
+    {
+        "query_type": "table",
+        "command": "CREATE TABLE [wealth_data].[dbo].[Clients] (     ClientID INT IDENTITY(1,1) PRIMARY KEY,     Name NVARCHAR(100) NOT NULL,     ContactInfo NVARCHAR(100),     AdvisorID INT,     RiskProfile NVARCHAR(50),     FOREIGN KEY (AdvisorID) REFERENCES [wealth_data].[dbo].[Advisors](AdvisorID) );"
+    },
+    {
+        "query_type": "table",
+        "command": "CREATE TABLE [wealth_data].[dbo].[Accounts] (     AccountID INT IDENTITY(1,1) PRIMARY KEY,     AccountType NVARCHAR(50) NOT NULL,     ClientID INT,     FOREIGN KEY (ClientID) REFERENCES [wealth_data].[dbo].[Clients](ClientID) );"
+    },
+    {
+        "query_type": "table",
+        "command": "CREATE TABLE [wealth_data].[dbo].[Assets] (     AssetID INT IDENTITY(1,1) PRIMARY KEY,     Name NVARCHAR(100) NOT NULL,     AssetType NVARCHAR(50),     CurrentValue DECIMAL(18, 2) );"
+    },
+    {
+        "query_type": "table",
+        "command": "CREATE TABLE [wealth_data].[dbo].[Transactions] (     TransactionID INT IDENTITY(1,1) PRIMARY KEY,     AccountID INT,     AssetID INT,     Date DATETIME,     Type NVARCHAR(50),     Amount DECIMAL(18, 2),     FOREIGN KEY (AccountID) REFERENCES [wealth_data].[dbo].[Accounts](AccountID),     FOREIGN KEY (AssetID) REFERENCES [wealth_data].[dbo].[Assets](AssetID) );"
+    },
+    {
+        "query_type": "table",
+        "command": "CREATE TABLE [wealth_data].[dbo].[Portfolios] (     PortfolioID INT IDENTITY(1,1) PRIMARY KEY,     ClientID INT,     Name NVARCHAR(100),     RiskLevel NVARCHAR(50),     FOREIGN KEY (ClientID) REFERENCES [wealth_data].[dbo].[Clients](ClientID) );"
+    },
+    {
+        "query_type": "table",
+        "command": "CREATE TABLE [wealth_data].[dbo].[PortfolioAssets] (     PortfolioAssetID INT IDENTITY(1,1) PRIMARY KEY,     PortfolioID INT,     AssetID INT,     Allocation DECIMAL(18, 2),     FOREIGN KEY (PortfolioID) REFERENCES [wealth_data].[dbo].[Portfolios](PortfolioID),     FOREIGN KEY (AssetID) REFERENCES [wealth_data].[dbo].[Assets](AssetID) );"
+    },
+    {
+        "query_type": "table",
+        "command": "CREATE TABLE [wealth_data].[dbo].[Projections] (     ProjectionID INT IDENTITY(1,1) PRIMARY KEY,     PortfolioID INT,     FutureValue DECIMAL(18, 2),     ProjectionDate DATETIME,     FOREIGN KEY (PortfolioID) REFERENCES [wealth_data].[dbo].[Portfolios](PortfolioID) );"
+    }
+]

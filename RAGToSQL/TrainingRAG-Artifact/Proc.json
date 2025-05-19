@@ -1,0 +1,22 @@
+[
+    {
+        "query_type": "procedure",
+        "command": "CREATE PROCEDURE [dbo].[CalculateClientRiskAssessment] AS BEGIN SELECT c.ClientID, c.Name AS ClientName, p.PortfolioID, p.Name AS PortfolioName, p.RiskLevel, SUM(a.CurrentValue * pa.Allocation / 100.0) AS TotalAllocatedValue FROM [wealth_data].[dbo].[Clients] c JOIN [wealth_data].[dbo].[Portfolios] p ON c.ClientID = p.ClientID JOIN [wealth_data].[dbo].[PortfolioAssets] pa ON p.PortfolioID = pa.PortfolioID JOIN [wealth_data].[dbo].[Assets] a ON pa.AssetID = a.AssetID GROUP BY c.ClientID, c.Name, p.PortfolioID, p.Name, p.RiskLevel; END;"
+    },
+    {
+        "query_type": "procedure",
+        "command": "CREATE PROCEDURE [dbo].[CalculateTotalPortfolioValue] AS BEGIN SELECT c.ClientID, c.Name AS ClientName, p.PortfolioID, p.Name AS PortfolioName, SUM(pa.Allocation * a.CurrentValue / 100.0) AS TotalPortfolioValue FROM [wealth_data].[dbo].[Clients] c JOIN [wealth_data].[dbo].[Portfolios] p ON c.ClientID = p.ClientID JOIN [wealth_data].[dbo].[PortfolioAssets] pa ON p.PortfolioID = pa.PortfolioID JOIN [wealth_data].[dbo].[Assets] a ON pa.AssetID = a.AssetID GROUP BY c.ClientID, c.Name, p.PortfolioID, p.Name; END;"
+    },
+    {
+        "query_type": "procedure",
+        "command": "CREATE PROCEDURE [dbo].[IdentifyUnderperformingAssets] @Threshold DECIMAL(18,2), @DaysInterval INT AS BEGIN SELECT a.AssetID, a.Name AS AssetName, a.CurrentValue, COUNT(t.TransactionID) AS NumTransactions FROM [wealth_data].[dbo].[Assets] a LEFT JOIN [wealth_data].[dbo].[Transactions] t ON a.AssetID = t.AssetID WHERE t.Date >= DATEADD(DAY, -@DaysInterval, GETDATE()) GROUP BY a.AssetID, a.Name, a.CurrentValue HAVING COUNT(t.TransactionID) < @Threshold; END;"
+    },
+    {
+        "query_type": "procedure",
+        "command": "CREATE PROCEDURE [dbo].[GetPortfolioPerformanceOverTime] @ClientID INT AS BEGIN SELECT p.PortfolioID, p.Name AS PortfolioName, t.Date, SUM(t.Amount) AS TotalTransactionValue, SUM(pa.Allocation * a.CurrentValue / 100.0) AS CurrentPortfolioValue FROM [wealth_data].[dbo].[Clients] c JOIN [dbo].[Portfolios] p ON c.ClientID = p.ClientID JOIN [wealth_data].[dbo].[PortfolioAssets] pa ON p.PortfolioID = pa.PortfolioID JOIN [wealth_data].[dbo].[Assets] a ON pa.AssetID = a.AssetID LEFT JOIN [wealth_data].[dbo].[Transactions] t ON t.AssetID = a.AssetID WHERE c.ClientID = @ClientID GROUP BY p.PortfolioID, p.Name, t.Date; END;"
+    },
+    {
+        "query_type": "procedure",
+        "command": "CREATE PROCEDURE [dbo].[AnalyzeAssetAllocation] AS BEGIN SELECT a.AssetID, a.Name AS AssetName, SUM(pa.Allocation) AS TotalAllocationAcrossPortfolios FROM [wealth_data].[dbo].[Assets] a JOIN [wealth_data].[dbo].[PortfolioAssets] pa ON a.AssetID = pa.AssetID GROUP BY a.AssetID, a.Name; END;"
+    }
+]

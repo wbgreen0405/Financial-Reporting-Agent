@@ -1,0 +1,22 @@
+[
+    {
+        "query_type": "view",
+        "command": "CREATE VIEW [wealth_data].[dbo].[PortfolioAssetAllocation] AS SELECT     p.PortfolioID,     p.Name AS PortfolioName,     pa.AssetID,     a.Name AS AssetName,     pa.Allocation,     a.CurrentValue,     (pa.Allocation / 100.0) * a.CurrentValue AS AllocatedValue FROM     [wealth_data].[dbo].[Portfolios] p JOIN     [wealth_data].[dbo].[PortfolioAssets] pa ON p.PortfolioID = pa.PortfolioID JOIN     [wealth_data].[dbo].[Assets] a ON pa.AssetID = a.AssetID;"
+    },
+    {
+        "query_type": "view",
+        "command": "CREATE VIEW [wealth_data].[dbo].[ClientPortfolioValue] AS SELECT     c.ClientID,     c.Name AS ClientName,     SUM(pa.Allocation * a.CurrentValue / 100.0) AS TotalPortfolioValue FROM     [wealth_data].[dbo].[Clients] c JOIN     [wealth_data].[dbo].[Portfolios] p ON c.ClientID = p.ClientID JOIN     [wealth_data].[dbo].[PortfolioAssets] pa ON p.PortfolioID = pa.PortfolioID JOIN     [wealth_data].[dbo].[Assets] a ON pa.AssetID = a.AssetID GROUP BY     c.ClientID, c.Name;"
+    },
+    {
+        "query_type": "view",
+        "command": "CREATE VIEW [wealth_data].[dbo].[PortfolioSummary] AS SELECT     p.PortfolioID,     p.Name AS PortfolioName,     c.ClientID,     c.Name AS ClientName,     SUM(pa.Allocation * a.CurrentValue / 100.0) AS TotalPortfolioValue,     COUNT(DISTINCT pa.AssetID) AS NumberOfAssets FROM     [wealth_data].[dbo].[Portfolios] p JOIN     [wealth_data].[dbo].[Clients] c ON p.ClientID = c.ClientID JOIN     [wealth_data].[dbo].[PortfolioAssets] pa ON p.PortfolioID = pa.PortfolioID JOIN     [wealth_data].[dbo].[Assets] a ON pa.AssetID = a.AssetID GROUP BY     p.PortfolioID, p.Name, c.ClientID, c.Name;"
+    },
+    {
+        "query_type": "view",
+        "command": "CREATE VIEW [wealth_data].[dbo].[AccountTransactionHistory] AS SELECT     t.TransactionID,     a.AccountID,     acc.AccountType,     a.AssetID,     t.Date,     t.Type AS TransactionType,     t.Amount,     a.CurrentValue FROM     [wealth_data].[dbo].[Transactions] t JOIN     [wealth_data].[dbo].[Accounts] acc ON t.AccountID = acc.AccountID JOIN     [wealth_data].[dbo].[Assets] a ON t.AssetID = a.AssetID ORDER BY     t.Date DESC;"
+    },
+    {
+        "query_type": "view",
+        "command": "CREATE VIEW [wealth_data].[dbo].[OverallWealthSummary] AS SELECT     a.AssetType,     COUNT(a.AssetID) AS NumberOfAssets,     SUM(a.CurrentValue) AS TotalWealth FROM     [wealth_data].[dbo].[Assets] a GROUP BY     a.AssetType;"
+    }
+]
